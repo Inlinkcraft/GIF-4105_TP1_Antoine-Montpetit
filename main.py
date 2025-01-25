@@ -1,30 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # TP1, code python pour débuter
-
-# quelques librairies suggérées
-# vous pourriez aussi utiliser matplotlib et opencv pour lire, afficher et sauvegarder des images
-
+from main_echellesimple import align_canaux
+from manipulation_img import *
 import numpy as np
 import skimage as sk
 import skimage.io as skio
 
 # nom du fichier d'image
-imname = 'Assets/00029u.tif'
+img_path = 'Assets/00106v.jpg'
 
-# lire l'image
-im = skio.imread(imname)
+# Loader l'image
+img = img_load(img_path)
 
-# conversion en double
-im = sk.img_as_float(im)
-    
-# calculer la hauteur de chaque partie (1/3 de la taille de l'image)
-height = int(np.floor(im.shape[0] / 3.0))
-
-# sÃ©parer les canaux de couleur
-b = im[:height]
-g = im[height: 2*height]
-r = im[2*height: 3*height]
+# Couper l'image
+b, g, r = img_slice(img, 3)
 
 # aligner les images... c'est ici que vous commencez à coder!
 # ces quelques fonctions pourraient vous être utiles:
@@ -32,14 +22,24 @@ r = im[2*height: 3*height]
 
 ### ag = align(g, b)
 ### ar = align(r, b)
-# créer l'image couleur
-im_out = np.dstack([r, g, b])
-im_out = sk.img_as_ubyte(im_out)
+
+pos_r = align_canaux(r, b, (15, 15), (50, 50))
+pos_g = align_canaux(g, b, (15, 15), (50, 50))
+
+r = np.roll(np.roll(r, pos_r[0], axis = 0), pos_r[1], axis = 1)
+g = np.roll(np.roll(g, pos_g[0], axis = 0), pos_g[1], axis = 1)
+
+print("===================COMPLETE===================")
+print("Position r", pos_r, "Position g", pos_g)
+print("==============================================")
+
+# Regénère l'image
+img_out = generate_img_from_rgb(r, g, b)
 
 # sauvegarder l'image
 fname = 'out/out_fname.jpg'
-skio.imsave(fname, im_out)
+skio.imsave(fname, img_out)
 
 # afficher l'image
-skio.imshow(im_out)
+skio.imshow(img_out)
 skio.show()
